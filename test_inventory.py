@@ -45,6 +45,35 @@ class ReplicationTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             system.write(9)
 
+    def test_stock_requires_whole_numbers_at_creation_and_on_write(self):
+        with ReplicatedInventory() as system:
+            original = system.read("primary")
+            for stock in (9.5, True, False, "9", None):
+                with self.subTest(stock=stock):
+                    with self.assertRaisesRegex(TypeError, "Stock must be an integer"):
+                        ReplicatedInventory(stock=stock)
+                    with self.assertRaisesRegex(TypeError, "Stock must be an integer"):
+                        system.write(stock)
+                    self.assertEqual(system.read("primary"), original)
+            for stock in (0, 9):
+                with self.subTest(valid_stock=stock):
+                    write = system.write(stock)
+                    system.wait_for_replication(write.version)
+                    self.assertEqual(system.read("secondary"), write)
+
+    def test_wait_for_pending_write_after_close_reports_shutdown(self):
+        with ReplicatedInventory() as system:
+            system.pause_replication()
+            write = system.write(9)
+        with self.assertRaisesRegex(RuntimeError, "System is closed"):
+            system.wait_for_replication(write.version)
+
+    def test_wait_for_already_applied_write_succeeds_after_close(self):
+        with ReplicatedInventory(replication_delay=0) as system:
+            write = system.write(9)
+            system.wait_for_replication(write.version)
+        system.wait_for_replication(write.version)
+
 
 if __name__ == "__main__":
     unittest.main()

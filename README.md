@@ -29,7 +29,7 @@ python3 -m unittest -v
                   +--------------------+
                   |                    v
              +--------+           +---------+
-             | Client | -- read -> | Primary |
+             | Client |-- read -> | Primary |
              +--------+           +---------+
                   |                    |
                   | read               | enqueue update (stock, version)
@@ -69,6 +69,9 @@ REPLICATED INVENTORY LAB (Python, two in-memory replicas)
   Client reads secondary: stock=10, version=0
   Client writes stock=12 to primary
   PASS: Primary immediately receives stock=12
+  Reads immediately after write (informational; replication may still be pending)
+  Client reads primary  : stock=12, version=1
+  Client reads secondary: stock=10, version=0
   Client reads primary  : stock=12, version=1
   Client reads secondary: stock=12, version=1
   PASS: Both replicas return 12 after replication
@@ -95,12 +98,17 @@ ALL SCENARIOS PASSED
 ```
 
 The first scenario changes stock from 10 to 12 and verifies that both replicas
-receive it. The second resets both replicas to 10, pauses replication, and writes 9
+receive it. The immediate reads are informational: the secondary may still hold
+10 or may already have applied 12, depending on scheduling. The second scenario
+resets both replicas to 10, pauses replication, and writes 9
 to the primary; the secondary still returns 10 throughout a bounded 0.2-second
 wait. The third resumes replication and verifies that both stock and version match.
 
-The four automated tests cover normal replication, stale reads and recovery,
-multiple queued writes including repeated stock values, and invalid operations.
+The seven automated tests cover normal replication, stale reads and recovery,
+multiple queued writes including repeated stock values, invalid operations,
+integer-only stock values, and replication waits after shutdown. A wait for an
+unapplied version after shutdown raises a closed-system error; a wait for an
+already applied version still succeeds.
 Their captured output is in [`evidence/test-output.txt`](evidence/test-output.txt).
 
 ## Reflection

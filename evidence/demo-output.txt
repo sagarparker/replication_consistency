@@ -5,6 +5,9 @@ REPLICATED INVENTORY LAB (Python, two in-memory replicas)
   Client reads secondary: stock=10, version=0
   Client writes stock=12 to primary
   PASS: Primary immediately receives stock=12
+  Reads immediately after write (informational; replication may still be pending)
+  Client reads primary  : stock=12, version=1
+  Client reads secondary: stock=10, version=0
   Client reads primary  : stock=12, version=1
   Client reads secondary: stock=12, version=1
   PASS: Both replicas return 12 after replication

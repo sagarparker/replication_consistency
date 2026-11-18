@@ -26,6 +26,8 @@ def main() -> None:
         print("  Client writes stock=12 to primary")
         write = system.write(12)
         check(system.read("primary") == write, "Primary immediately receives stock=12")
+        print("  Reads immediately after write (informational; replication may still be pending)")
+        show_reads(system)
         system.wait_for_replication(write.version)
         check(show_reads(system) == (12, 12), "Both replicas return 12 after replication")
 

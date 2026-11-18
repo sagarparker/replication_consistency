@@ -2,8 +2,11 @@ test_backlog_reaches_latest_version_even_with_repeated_values (test_inventory.Re
 test_invalid_input_and_write_after_shutdown (test_inventory.ReplicationTests.test_invalid_input_and_write_after_shutdown) ... ok
 test_primary_write_eventually_replicates (test_inventory.ReplicationTests.test_primary_write_eventually_replicates) ... ok
 test_stale_read_and_recovery (test_inventory.ReplicationTests.test_stale_read_and_recovery) ... ok
+test_stock_requires_whole_numbers_at_creation_and_on_write (test_inventory.ReplicationTests.test_stock_requires_whole_numbers_at_creation_and_on_write) ... ok
+test_wait_for_already_applied_write_succeeds_after_close (test_inventory.ReplicationTests.test_wait_for_already_applied_write_succeeds_after_close) ... ok
+test_wait_for_pending_write_after_close_reports_shutdown (test_inventory.ReplicationTests.test_wait_for_pending_write_after_close_reports_shutdown) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 0.057s
+Ran 7 tests in 0.262s
 
 OK

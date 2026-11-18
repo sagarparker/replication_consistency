@@ -7,6 +7,13 @@ from time import monotonic
 from typing import Literal
 
 
+def _validate_stock(stock: int) -> None:
+    if not isinstance(stock, int) or isinstance(stock, bool):
+        raise TypeError("Stock must be an integer")
+    if stock < 0:
+        raise ValueError("Stock must be nonnegative")
+
+
 @dataclass(frozen=True)
 class Inventory:
     stock: int
@@ -23,8 +30,9 @@ class ReplicatedInventory:
     """
 
     def __init__(self, stock: int = 10, replication_delay: float = 0.1):
-        if stock < 0 or replication_delay < 0:
-            raise ValueError("Stock and replication delay must be nonnegative")
+        _validate_stock(stock)
+        if replication_delay < 0:
+            raise ValueError("Replication delay must be nonnegative")
         self._primary = Inventory(stock, 0)
         self._secondary = Inventory(stock, 0)
         self._pending: deque[Inventory] = deque()
@@ -46,8 +54,7 @@ class ReplicatedInventory:
 
     def write(self, stock: int) -> Inventory:
         """Acknowledge a primary write immediately and enqueue it for replication."""
-        if stock < 0:
-            raise ValueError("Stock must be nonnegative")
+        _validate_stock(stock)
         with self._condition:
             if self._closed:
                 raise RuntimeError("System is closed")
@@ -67,13 +74,15 @@ class ReplicatedInventory:
             self._condition.notify_all()
 
     def wait_for_replication(self, version: int, timeout: float = 2.0) -> None:
-        """Wait for the secondary to apply a version, with a bounded deadline."""
+        """Wait for a version; fail if shutdown prevents it from being applied."""
         with self._condition:
             ready = self._condition.wait_for(
                 lambda: self._secondary.version >= version or self._closed,
                 timeout=timeout,
             )
-            if not ready or self._secondary.version < version:
+            if self._secondary.version < version and self._closed:
+                raise RuntimeError("System is closed before replication completed")
+            if not ready:
                 raise TimeoutError(f"Secondary did not reach version {version}")
 
     def _replicate(self) -> None:
