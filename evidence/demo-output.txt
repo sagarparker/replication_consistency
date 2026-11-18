@@ -1,0 +1,30 @@
+REPLICATED INVENTORY LAB (Python, two in-memory replicas)
+
+1. Successful asynchronous replication
+  Client reads primary  : stock=10, version=0
+  Client reads secondary: stock=10, version=0
+  Client writes stock=12 to primary
+  PASS: Primary immediately receives stock=12
+  Client reads primary  : stock=12, version=1
+  Client reads secondary: stock=12, version=1
+  PASS: Both replicas return 12 after replication
+
+2. Stale-read test
+  Reset stock=10 through primary and wait for replication
+  Client reads primary  : stock=10, version=2
+  Client reads secondary: stock=10, version=2
+  PASS: Both replicas start the stale-read test at 10
+  Replication PAUSED; client writes stock=9 to primary
+  Client reads primary  : stock=9, version=3
+  Client reads secondary: stock=10, version=2
+  PASS: Primary returns 9; secondary returns stale value 10
+  PASS: Secondary remains behind during a 0.2-second replication pause
+
+3. Recovery and convergence
+  Replication RESUMED; wait for queued update
+  Client reads primary  : stock=9, version=3
+  Client reads secondary: stock=9, version=3
+  PASS: Both replicas converge to 9 after replication resumes
+  PASS: Replica versions also match
+
+ALL SCENARIOS PASSED

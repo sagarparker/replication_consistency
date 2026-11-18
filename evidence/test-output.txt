@@ -1,0 +1,9 @@
+test_backlog_reaches_latest_version_even_with_repeated_values (test_inventory.ReplicationTests.test_backlog_reaches_latest_version_even_with_repeated_values) ... ok
+test_invalid_input_and_write_after_shutdown (test_inventory.ReplicationTests.test_invalid_input_and_write_after_shutdown) ... ok
+test_primary_write_eventually_replicates (test_inventory.ReplicationTests.test_primary_write_eventually_replicates) ... ok
+test_stale_read_and_recovery (test_inventory.ReplicationTests.test_stale_read_and_recovery) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.057s
+
+OK
