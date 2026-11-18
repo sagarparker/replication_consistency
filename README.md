@@ -24,20 +24,18 @@ python3 -m unittest -v
 
 ## Architecture
 
-```text
-                       write(stock)
-                  +--------------------+
-                  |                    v
-             +--------+           +---------+
-             | Client |-- read -> | Primary |
-             +--------+           +---------+
-                  |                    |
-                  | read               | enqueue update (stock, version)
-                  v                    v
-             +-----------+       +--------------------+
-             | Secondary | <---- | FIFO queue + worker|
-             +-----------+ async +--------------------+
-                                  pause / resume
+```mermaid
+flowchart LR
+    client[Client]
+    primary[Primary replica]
+    secondary[Secondary replica]
+    replicator[FIFO queue + replication worker]
+
+    client -->|Write stock| primary
+    client -->|Read inventory| primary
+    client -->|Read inventory| secondary
+    primary -->|Enqueue stock and version| replicator
+    replicator -->|Asynchronous replication: pause / resume| secondary
 ```
 
 `inventory.py` keeps two independent immutable inventory snapshots in one process.
